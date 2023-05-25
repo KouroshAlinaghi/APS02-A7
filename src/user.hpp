@@ -29,6 +29,7 @@ public:
     std::vector<Player*> get_squad();
     int get_total_points();
     void update_total_points();
+    bool had_completed_squad();
 };
 
 #endif

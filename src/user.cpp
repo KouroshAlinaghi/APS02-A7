@@ -75,3 +75,7 @@ void User::update_total_points() {
     for (Player* player : squad)
         total_points += player->get_current_week_score();
 }
+
+bool User::had_completed_squad() {
+    return completed_squad;
+}

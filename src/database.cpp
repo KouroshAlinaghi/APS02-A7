@@ -147,22 +147,23 @@ vector<Club*> Database::get_clubs_sorted() {
     return res;
 }
 
-Account* Database::get_user(string username) {
-    for (Account* account : accounts) 
-        if (account->get_username() == username)
-            return account;
+User* Database::get_user(string username) {
+    for (User* user : users) 
+        if (user->get_username() == username)
+            return user;
     return nullptr;
 }
 
-Account* Database::create_user(string username, string password) {
-    Account* new_user = new User(username, password);
-    accounts.push_back(new_user);
+User* Database::create_user(string username, string password) {
+    User* new_user = new User(username, password);
+    users.push_back(new_user);
     return new_user;
 }
 
-void Database::create_admin_account() {
-    Account* admin = new Admin(ADMIN_USERNAME, ADMIN_PASSWORD);
-    accounts.push_back(admin);
+Admin* Database::create_admin() {
+    Admin* admin = new Admin(ADMIN_USERNAME, ADMIN_PASSWORD);
+    admins.push_back(admin);
+    return admin;
 }
 
 vector<Player*> Database::get_best_players(PLAYER_POSITION position, int count, int week) {
@@ -199,21 +200,16 @@ void Database::tell_player_the_week_passed() {
 }
 
 void Database::reset_transfers_counts() {
-    for (Account* account : accounts)
-        if (!account->is_admin())
-            account->reset_transfers_counts();
+    for (User* user: users)
+        user->reset_transfers_counts();
 }
 
 void Database::calculate_points() {
-    for (Account* account : accounts)
-        if (account->is_complted() and !account->is_admin())
-            account->update_total_points();
+    for (User* user: users)
+        if (user->is_complted())
+            user->update_total_points();
 }
 
-vector<Account*> Database::get_users() {
-    vector<Account*> res;
-    for (Account* account : accounts)
-        if (!account->is_admin())
-            res.push_back(account);
-    return res;
+vector<User*> Database::get_users() {
+    return users;
 }

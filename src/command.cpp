@@ -97,11 +97,11 @@ void get_league_standings(Database* db, Session*, Arguments) {
 void get_users_ranking(Database* db, Session*, Arguments args) {
     if (args.size() != 0) throw BadRequestException();
 
-    vector<Account*> users = db->get_users();
-    sort(users.begin(), users.end(), [](Account* u1, Account* u2) { return u1->get_total_points() > u2->get_total_points();  });
+    vector<User*> users = db->get_users();
+    sort(users.begin(), users.end(), [](User* u1, User* u2) { return u1->get_total_points() > u2->get_total_points();  });
 
     int i = 1;
-    for (Account* user : users) {
+    for (User* user : users) {
         cout << i << ". team_name: " << user->get_username() << " | point: " << user->get_total_points() << endl;
         i++;
     }
@@ -170,6 +170,8 @@ void sell_player(Database* db, Session* cookie, Arguments args) {
     cookie->ensure_user_logged_in();
     if (cookie->get_current_user()->is_admin()) throw PermissionDeniedException();
 
+    User* current_user = (User*)cookie->get_current_user();
+
     string player_name;
     for (int i = 2; i < (int)args.size(); i++)
         player_name = player_name + args[i] + " ";
@@ -177,11 +179,11 @@ void sell_player(Database* db, Session* cookie, Arguments args) {
 
     Player* player = db->get_player(player_name);
     if (!player) throw NotFoundException();
-    if (!cookie->get_current_user()->has_player(player)) throw NotFoundException();
-    if (cookie->get_current_user()->get_players_sold_this_week() >= MAX_SELLS and cookie->get_current_user()->had_completed_squad())throw PermissionDeniedException();
+    if (current_user->has_player(player)) throw NotFoundException();
+    if (current_user->get_players_sold_this_week() >= MAX_SELLS and current_user->had_completed_squad()) throw PermissionDeniedException();
 
-    cookie->get_current_user()->sell_player(player);
-    cookie->get_current_user()->inc_solds_count();
+    current_user->sell_player(player);
+    current_user->inc_solds_count();
 
     cout << "OK" << endl;
 }
@@ -197,15 +199,17 @@ void buy_player(Database* db, Session* cookie, Arguments args) {
         player_name = player_name + args[i] + " ";
     player_name.pop_back();
 
+    User* current_user = (User*)cookie->get_current_user();
+
     Player* player = db->get_player(player_name);
     if (!player) throw NotFoundException();
-    if (cookie->get_current_user()->has_player(player)) throw BadRequestException();
-    if (cookie->get_current_user()->get_players_sold_this_week() >= MAX_BUYS and cookie->get_current_user()->had_completed_squad())throw PermissionDeniedException();
-    if (cookie->get_current_user()->get_number_of_players(player->get_position()) >= PLAYERS_COUNT_IN_SQUAD[player->get_position()])
+    if (current_user->has_player(player)) throw BadRequestException();
+    if (current_user->get_players_sold_this_week() >= MAX_BUYS and current_user->had_completed_squad()) throw PermissionDeniedException();
+    if (current_user->get_number_of_players(player->get_position()) >= PLAYERS_COUNT_IN_SQUAD[player->get_position()])
         throw BadRequestException();
 
-    cookie->get_current_user()->buy_player(player);
-    cookie->get_current_user()->inc_boughts_count();
+    current_user->buy_player(player);
+    current_user->inc_boughts_count();
 
     cout << (player->is_available() ? "OK" : "This player is not available for the next week") << endl;
 }
@@ -215,7 +219,7 @@ void get_squad(Database* db, Session* cookie, Arguments args) {
         throw BadRequestException();
     cookie->ensure_user_logged_in();
 
-    Account* team = args.size() == 3 ? db->get_user(args[2]) : cookie->get_current_user();
+    User* team = args.size() == 3 ? db->get_user(args[2]) : (User*)cookie->get_current_user();
     if (!team) throw NotFoundException();
     if (!team->is_complted()) throw EmptyException();
 
