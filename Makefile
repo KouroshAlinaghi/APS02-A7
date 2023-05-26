@@ -1,7 +1,7 @@
 C_FLAGS=-std=c++11 -Wall -Wextra
 SRC_DIR=src
 SRCS=$(wildcard ${SRC_DIR}/*.cpp)
-HEADERS=$(wildcard ${SRC_DIR}/*.hpp)
+HEADERS=$(wildcard ${SRC_DIR}/*.hpp ${SRC_DIR}/custom_exceptions/*.hpp)
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 A7: $(OBJS)
