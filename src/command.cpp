@@ -256,10 +256,10 @@ void open_transfer_window(Database*, Session* cookie, Arguments) {
 void pass_week(Database* db, Session* cookie, Arguments) {
     cookie->ensure_admin_logged_in();
 
-    cookie->pass_week();
     db->tell_player_the_week_passed();
     db->reset_transfers_counts();
     db->read_week_stats(cookie->get_current_week()+1);
+    cookie->pass_week();
     db->calculate_points();
 
     cout << "OK" << endl;

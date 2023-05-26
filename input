@@ -1,20 +1,25 @@
-POST signup ? team_name kourosh24 password 123456
-GET team_of_the_week ? week 3
-GET matches_result_league ? week_num 2
-GET players ? team Liverpool_FC
-POST buy_player ? name D. De Gea
-POST buy_player ? name V. Van Dijk
-POST buy_player ? name Ruben Dias
-POST buy_player ? name K. De Bruyne
-POST buy_player ? name J. Vardy
-POST logout
 POST register_admin ? username admin password 123456
 POST pass_week
 POST pass_week
 POST pass_week
 POST pass_week
 POST pass_week
-GET squad ? fantasy_team kourosh24
-GET users_ranking
 POST pass_week
-GET users_ranking
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+GET league_standings
