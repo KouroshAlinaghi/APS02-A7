@@ -35,6 +35,7 @@ public:
     void read_week_stats(int week);
     std::vector<Club*> get_clubs_sorted();
     User* get_user(std::string username);
+    Admin* get_admin(std::string username);
     User* create_user(std::string username, std::string pasword);
     std::vector<Player*> get_best_players(PLAYER_POSITION position, int count, int week);
     std::vector<Match*> get_matches(int week);

@@ -148,11 +148,11 @@ void register_admin(Database* db, Session* cookie, Arguments args) {
     if (args[0] != "?" or args[1] != "username" or args[3] != "password") throw BadRequestException();
     cookie->ensure_user_not_logged_in();
 
-    Account* found_user = db->get_user(args[2]);
-    if (!found_user or !found_user->is_admin()) throw BadRequestException();
-    if (!found_user->check_password(args[4])) throw BadRequestException();
+    Admin* found_admin = db->get_admin(args[2]);
+    if (!found_admin or !found_admin->is_admin()) throw BadRequestException();
+    if (!found_admin->check_password(args[4])) throw BadRequestException();
     
-    cookie->set_current_user(found_user);
+    cookie->set_current_user(found_admin);
 
     cout << "OK" << endl;
 }

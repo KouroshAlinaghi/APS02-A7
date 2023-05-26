@@ -10,12 +10,10 @@ class Account {
 protected:
     std::string username;
     std::string password;
-    bool completed_squad;
 public:
     Account(std::string username_, std::string password_) {
         username = username_;
         password = password_;
-        completed_squad = false;
     }
     virtual bool is_admin() = 0;
     std::string get_username();

@@ -3,6 +3,7 @@
 
 #include "app.hpp"
 #include "command.hpp"
+#include "custom_exceptions/bad_request_exception.hpp"
 #include "input.hpp"
 #include "custom_exception.hpp"
 #include "general.hpp"
@@ -28,11 +29,16 @@ void App::initialize_commands() {
 }
 
 void App::execute_command(HTTP_VERB verb, string command_name, Arguments args) {
-    for (Command* cmd : commands)
-        if (cmd->get_name() == command_name && cmd->get_verb() == verb) {
-            cmd->execute(db, cookie, args);
-            return;
+    for (Command* cmd : commands) {
+        if (cmd->get_name() == command_name) {
+            if (cmd->get_verb() != verb) {
+                throw BadRequestException();
+            } else {
+                cmd->execute(db, cookie, args);
+                return;
+            }
         }
+    }
 }
 
 void App::start() {

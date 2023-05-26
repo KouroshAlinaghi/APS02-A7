@@ -154,6 +154,13 @@ User* Database::get_user(string username) {
     return nullptr;
 }
 
+Admin* Database::get_admin(string username) {
+    for (Admin* admin : admins) 
+        if (admin->get_username() == username)
+            return admin;
+    return nullptr;
+}
+
 User* Database::create_user(string username, string password) {
     User* new_user = new User(username, password);
     users.push_back(new_user);

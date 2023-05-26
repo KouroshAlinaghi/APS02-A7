@@ -52,7 +52,7 @@ int User::get_number_of_players(PLAYER_POSITION position) {
 void User::buy_player(Player* player_) {
     squad.push_back(player_);
     if (squad.size() == NUM_OF_PLAYERS_IN_SQUAD) 
-        completed_squad = true;
+        ever_had_completed_squad = true;
 }
     
 void User::inc_boughts_count() {
@@ -77,5 +77,5 @@ void User::update_total_points() {
 }
 
 bool User::had_completed_squad() {
-    return completed_squad;
+    return ever_had_completed_squad;
 }
