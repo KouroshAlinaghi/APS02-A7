@@ -4,8 +4,10 @@
 #include <string>
 
 #include "command.hpp"
+#include "player.hpp"
 
 HTTP_VERB string_to_verb(std::string str);
 Arguments get_args(std::vector<std::string> words);
+PLAYER_POSITION shortened_to_position(std::string pos);
 
 #endif

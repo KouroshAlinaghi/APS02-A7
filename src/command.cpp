@@ -9,6 +9,7 @@
 #include "custom_exceptions/not_found_exception.hpp"
 #include "custom_exceptions/permission_denied_exception.hpp"
 #include "player.hpp"
+#include "general.hpp"
 
 using namespace std;
 
@@ -46,7 +47,7 @@ void get_team_of_the_week(Database* db, Session* cookie, Arguments args) {
 
 void get_players(Database* db, Session*, Arguments args) {
     if (args.empty() or args[0] != "?") throw BadRequestException();
-    if (args.size() == 3 and args[1] != "team") throw BadRequestException();
+    if (args.size() == 3 and args[1] != "team_name") throw BadRequestException();
     if (args.size() != 1 and args.size() != 3 and args.size() != 4 and args.size() != 5) throw BadRequestException();
 
     string team_name;
@@ -58,21 +59,21 @@ void get_players(Database* db, Session*, Arguments args) {
 
     bool sort_by_rank = args.back() == "ranks" ? true : false;
     bool filter_by_position = false;
-    PLAYER_POSITION position;
-
-    if (args.back() == "fw") {
-        position = FORWARD;
-        filter_by_position = true;
-    } else if (args.back() == "md") {
-        position = MIDFIELDER;
-        filter_by_position = true;
-    } else if (args.back() == "df") {
-        position = DEFENDER;
-        filter_by_position = true;
-    } else if (args.back() == "gk") {
-        position = GOALKEEPER;
-        filter_by_position = true;
+    int pos_index = -1;
+    switch (args.size()) {
+        case 4:
+            if (!sort_by_rank) pos_index = 3;
+            break;
+        case 5:
+            pos_index = 3;
+            break;
+        default:
+            pos_index = -1;
     }
+
+    filter_by_position = pos_index != -1;
+    PLAYER_POSITION position;
+    if (filter_by_position) position = shortened_to_position(args[pos_index]);
 
     vector<Player*> players = db->get_players_of_club(team);
     if (sort_by_rank)

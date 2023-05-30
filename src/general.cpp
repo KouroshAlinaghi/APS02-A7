@@ -1,5 +1,6 @@
 #include "general.hpp"
 #include "command.hpp"
+#include "custom_exceptions/bad_request_exception.hpp"
 #include <vector>
 
 using namespace std;
@@ -17,4 +18,17 @@ Arguments get_args(vector<string> words) {
     for (int i = 2; i < (int)words.size(); i++)
         res.push_back(words[i]);
     return res;
+}
+
+PLAYER_POSITION shortened_to_position(string pos) {
+    if (pos == "fw")
+        return FORWARD;
+    if (pos == "md")
+        return MIDFIELDER;
+    if (pos == "df")
+        return DEFENDER;
+    if (pos == "gk")
+        return GOALKEEPER;
+
+    throw BadRequestException();
 }
