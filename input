@@ -1,6 +1,5 @@
 POST register_admin ? username admin password 123456
 POST pass_week
-GET players ? team_name Man._City
-GET players ? team_name Man._City ranks
-GET players ? team_name Man._City gk
-GET players ? team_name Man._City gk ranks
+POST pass_week
+POST pass_week
+GET team_of_the_week ?
