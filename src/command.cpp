@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <iomanip>
 
 #include "account.hpp"
 #include "command.hpp"
@@ -26,7 +27,7 @@ void Command::execute(Database* db, Session* cookie, Arguments args) {
 }
 
 void get_team_of_the_week(Database* db, Session* cookie, Arguments args) {
-    if (args.empty() or args[0] != "?" or (args.size() == 3 and args[1] != "week") or (args.size() != 1 and args.size() != 3))
+    if (args.empty() or args[0] != "?" or (args.size() == 3 and args[1] != "week_num") or (args.size() != 1 and args.size() != 3))
         throw BadRequestException();
 
     int week = args.size() == 3 ? stoi(args[2]) : cookie->get_current_week();   
@@ -36,13 +37,17 @@ void get_team_of_the_week(Database* db, Session* cookie, Arguments args) {
     for (PLAYER_POSITION position : POSITIONS_IN_ORDER) 
         chosen_players.push_back(db->get_best_players(position, PLAYERS_COUNT_IN_SQUAD[position], week));
     
-    cout << "list of players:" << endl;
-    for (int i = 0, p = 0; i < NUM_OF_PLAYERS_IN_SQUAD; p++) {
-        for (Player* player : chosen_players[p]) {
-            cout << i+1 << ". name: " << player->get_name() << " | score: " << player->get_week_score(week) << endl;
-            i++;
-        }
-    }
+    cout << "team of the week:" << endl;
+    cout << "Goalkeeper: "; 
+    chosen_players[0][0]->print_week_details(week);
+    cout << "Defender 1: "; 
+    chosen_players[1][0]->print_week_details(week);
+    cout << "Defender 2: ";
+    chosen_players[1][1]->print_week_details(week);
+    cout << "Midfielder: ";
+    chosen_players[2][0]->print_week_details(week);
+    cout << "Forward: ";
+    chosen_players[3][0]->print_week_details(week);
 }
 
 void get_players(Database* db, Session*, Arguments args) {
@@ -50,14 +55,10 @@ void get_players(Database* db, Session*, Arguments args) {
     if (args.size() == 3 and args[1] != "team_name") throw BadRequestException();
     if (args.size() != 1 and args.size() != 3 and args.size() != 4 and args.size() != 5) throw BadRequestException();
 
-    string team_name;
-    for (char c : args[2])
-        team_name += (c == '_' ? ' ' : c);
-
+    string team_name = replace_string(args[2], '_', ' ');
     Club* team = db->get_club(team_name);
     if (!team) throw NotFoundException();
-
-    bool sort_by_rank = args.back() == "ranks" ? true : false;
+    bool sort_by_rank = args.back() == "ranks";
     bool filter_by_position = false;
     int pos_index = -1;
     switch (args.size()) {
@@ -70,42 +71,46 @@ void get_players(Database* db, Session*, Arguments args) {
         default:
             pos_index = -1;
     }
-
     filter_by_position = pos_index != -1;
     PLAYER_POSITION position;
-    if (filter_by_position) position = shortened_to_position(args[pos_index]);
-
     vector<Player*> players = db->get_players_of_club(team);
-    if (sort_by_rank)
-        sort(players.begin(), players.end(), [](Player* p1, Player* p2) { return p1->get_current_week_score() > p2->get_current_week_score(); });
-
-    int i = 0;
-    for (Player* player : players) {
-        if (filter_by_position and player->get_position() != position) continue;
-        i++;
-        cout << i << ". name: " << player->get_name() << " | role: " << player->get_position_shortened() << " | score: " << player->get_current_week_score() << endl;
+    if (filter_by_position) {
+        position = shortened_to_position(args[pos_index]);
+        vector<Player*> filtered_players;
+        for (Player* player : players) 
+            if (player->get_position() == position)
+                filtered_players.push_back(player);
+        players = filtered_players;
     }
+
+    if (sort_by_rank)
+        sort(players.begin(), players.end(), [](Player* p1, Player* p2) { return p1->get_avg_score() > p2->get_avg_score(); });
+
+    for (int i = 0; i < (int)players.size(); i++)
+        players[i]->print_with_details(i+1);
 }
 
 void get_league_standings(Database* db, Session*, Arguments) {
     vector<Club*> teams = db->get_clubs_sorted();
-    cout << "league standings:" << endl;
+    cout << "league standing:" << endl;
     for (int i = 0; i < (int)teams.size(); i++)
-        cout << i+1 << ". " << teams[i]->get_name() << ": score: " << teams[i]->get_points()
-        << " | GF: " << teams[i]->get_goals_scored() << " | GA: " << teams[i]->get_goals_conceded() << endl;
+        teams[i]->print_row(i+1);
 }
 
 void get_users_ranking(Database* db, Session*, Arguments args) {
     if (args.size() != 0) throw BadRequestException();
 
     vector<User*> users = db->get_users();
-    sort(users.begin(), users.end(), [](User* u1, User* u2) { return u1->get_total_points() > u2->get_total_points();  });
+    if (!users.size()) throw EmptyException();
 
-    int i = 1;
-    for (User* user : users) {
-        cout << i << ". team_name: " << user->get_username() << " | point: " << user->get_total_points() << endl;
-        i++;
-    }
+    sort(users.begin(), users.end(), [](User* u1, User* u2) { 
+        if (u1->get_total_points() == u2->get_total_points())
+            return u1->get_username() < u2->get_username();
+        return u1->get_total_points() > u2->get_total_points();  
+    });
+
+    for (int i = 0; i < (int)users.size(); i++) 
+        users[i]->print_row(i+1);
 }
 
 void get_matches_result(Database* db, Session* cookie, Arguments args) {
@@ -150,7 +155,7 @@ void register_admin(Database* db, Session* cookie, Arguments args) {
     cookie->ensure_user_not_logged_in();
 
     Admin* found_admin = db->get_admin(args[2]);
-    if (!found_admin or !found_admin->is_admin()) throw BadRequestException();
+    if (!found_admin) throw BadRequestException();
     if (!found_admin->check_password(args[4])) throw BadRequestException();
     
     cookie->set_current_user(found_admin);
@@ -172,15 +177,10 @@ void sell_player(Database* db, Session* cookie, Arguments args) {
     if (cookie->get_current_user()->is_admin()) throw PermissionDeniedException();
 
     User* current_user = (User*)cookie->get_current_user();
+    Player* player = db->get_player(get_player_name(args));
 
-    string player_name;
-    for (int i = 2; i < (int)args.size(); i++)
-        player_name = player_name + args[i] + " ";
-    player_name.pop_back();
-
-    Player* player = db->get_player(player_name);
     if (!player) throw NotFoundException();
-    if (current_user->has_player(player)) throw NotFoundException();
+    if (!current_user->has_player(player)) throw NotFoundException();
     if (current_user->get_players_sold_this_week() >= MAX_SELLS and current_user->had_completed_squad()) throw PermissionDeniedException();
 
     current_user->sell_player(player);
@@ -195,17 +195,12 @@ void buy_player(Database* db, Session* cookie, Arguments args) {
     cookie->ensure_user_logged_in();
     if (cookie->get_current_user()->is_admin()) throw PermissionDeniedException();
 
-    string player_name;
-    for (int i = 2; i < (int)args.size(); i++)
-        player_name = player_name + args[i] + " ";
-    player_name.pop_back();
-
     User* current_user = (User*)cookie->get_current_user();
+    Player* player = db->get_player(get_player_name(args));
 
-    Player* player = db->get_player(player_name);
     if (!player) throw NotFoundException();
     if (current_user->has_player(player)) throw BadRequestException();
-    if (current_user->get_players_sold_this_week() >= MAX_BUYS and current_user->had_completed_squad()) throw PermissionDeniedException();
+    if (current_user->get_players_bought_this_week() >= MAX_BUYS and current_user->had_completed_squad()) throw PermissionDeniedException();
     if (current_user->get_number_of_players(player->get_position()) >= PLAYERS_COUNT_IN_SQUAD[player->get_position()])
         throw BadRequestException();
 
@@ -222,6 +217,7 @@ void get_squad(Database* db, Session* cookie, Arguments args) {
 
     User* team = args.size() == 3 ? db->get_user(args[2]) : (User*)cookie->get_current_user();
     if (!team) throw NotFoundException();
+    if (team->is_admin()) throw PermissionDeniedException();
     if (!team->is_complted()) throw EmptyException();
 
     vector<Player*> squad = team->get_squad();

@@ -2,4 +2,33 @@ POST register_admin ? username admin password 123456
 POST pass_week
 POST pass_week
 POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
+POST pass_week
 GET team_of_the_week ?
+GET league_standings
+GET players ? team_name Chelsea_FC df ranks
+GET matches_result_league ? 
+POST logout
+POST signup ? team_name KouroshFC password 123456
+POST buy_player ? name Ruben Dias
+POST sell_player ? name Ruben Dias
+POST buy_player ? name Ruben Dias
+POST buy_player ? name V. Van Dijk
+POST buy_player ? name K. De Bruyne
+POST buy_player ? name J. Vardy
+GET users_ranking
+POST logout
+POST register_admin ? username admin password 123456
+POST pass_week
+GET users_ranking
+POST logout
+POST login ? team_name KouroshFC password 123456
+POST buy_player ? name D. De Gea
+POST logout
+POST register_admin ? username admin password 123456
+POST pass_week
+GET users_ranking
+GET squad ? fantasy_team KouroshFC
+GET squad ? 

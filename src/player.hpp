@@ -28,6 +28,7 @@ private:
     int yellow_cards_count;
     bool availablity;
     std::vector<PlayerStats> stats;
+    int get_weeks_played();
 public:
     Player(Club* team_, std::string name_, PLAYER_POSITION position_) {
         team = team_;
@@ -47,9 +48,12 @@ public:
     void initialize_new_week_stats();
     double get_current_week_score();
     double get_week_score(int week);
+    double get_avg_score();
     std::string get_position_shortened();
     bool is_available();
     void recover_one_week();
+    void print_week_details(int week);
+    void print_with_details(int index);
 };
 
 #endif

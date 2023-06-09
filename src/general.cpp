@@ -32,3 +32,18 @@ PLAYER_POSITION shortened_to_position(string pos) {
 
     throw BadRequestException();
 }
+
+string replace_string(string str, char old_char, char new_char) {
+    string res;
+    for (char c : str)
+        res += (c == old_char ? new_char : c);
+    return res;
+}
+
+string get_player_name(Arguments args) {
+    string res;
+    for (int i = 2; i < (int)args.size(); i++)
+        res = res + args[i] + " ";
+    res.pop_back();
+    return res;
+}

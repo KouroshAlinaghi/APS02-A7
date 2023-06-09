@@ -126,7 +126,7 @@ void Database::read_week_stats(int week) {
                 case SCORES:
                     for (string player_and_score: words) {
                         player_scores = split(player_and_score, ':');
-                        get_player(player_scores[0])->set_score(stoi(player_scores[1]));
+                        get_player(player_scores[0])->set_score(stod(player_scores[1]));
                     }
                     break;
             }
@@ -142,6 +142,7 @@ vector<Club*> Database::get_clubs_sorted() {
         if (c1->get_points() < c2->get_points()) return false;
         if (c1->get_goals_diff() > c2->get_goals_diff()) return true;
         if (c1->get_goals_diff() < c2->get_goals_diff()) return false;
+        if (c1->get_goals_scored() == c2->get_goals_scored()) return c1->get_name() < c2->get_name();
         return c1->get_goals_scored() > c2->get_goals_scored();
     });
     return res;

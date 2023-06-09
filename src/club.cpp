@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "club.hpp"
 
 using namespace std;
@@ -32,4 +34,8 @@ int Club::get_goals_conceded() {
 
 int Club::get_goals_diff() {
     return goals_scored - goals_conceded;
+}
+
+void Club::print_row(int index) {
+    cout << index << ". " << get_name() << ": score: " << get_points() << " | GF: " << get_goals_scored() << " | GA: " << get_goals_conceded() << endl;
 }

@@ -1,6 +1,8 @@
+#include <iomanip>
+#include <iostream>
+
 #include "player.hpp"
 #include "player_stats.hpp"
-#include <iostream>
 
 using namespace std;
 
@@ -33,6 +35,7 @@ void Player::recieve_red_card() {
 void Player::set_score(double score) {
     total_points += score;
     stats.back().set_score(score);
+    stats.back().set_played(true);
 }
 
 void Player::initialize_new_week_stats() {
@@ -72,4 +75,25 @@ bool Player::is_available() {
 
 void Player::recover_one_week() {
     weeks_left_until_injury_recovery = max(0, weeks_left_until_injury_recovery-1);
+}
+
+double Player::get_avg_score() {
+    if (!get_weeks_played()) return 0;
+    return total_points / get_weeks_played();
+}
+
+int Player::get_weeks_played() {
+    int c = 0;
+    for (PlayerStats w : stats)
+        if (w.did_play())
+            c++;
+    return c;
+}
+
+void Player::print_week_details(int week) {
+    cout << name << " | score: "<< fixed << setprecision(1) << get_week_score(week) << endl;
+}
+
+void Player::print_with_details(int index) {
+    cout << index << ". name: " << name << " | role: " << get_position_shortened() << " | score: " << fixed << setprecision(1) << get_avg_score() << endl;
 }

@@ -24,6 +24,7 @@ public:
     int get_goals_scored();
     int get_goals_conceded();
     int get_goals_diff();
+    void print_row(int index);
 };
 
 #endif

@@ -20,6 +20,10 @@ void PlayerStats::set_score(double score_) {
     score = score_;
 }
 
+void PlayerStats::set_played(bool played_) {
+    played = played_;
+}
+
 double PlayerStats::get_score() {
     return score;
 }
@@ -30,4 +34,8 @@ bool PlayerStats::had_yellow_card() {
 
 bool PlayerStats::had_red_card() {
     return red_card;
+}
+
+bool PlayerStats::did_play() {
+    return played;
 }

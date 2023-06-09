@@ -1,7 +1,9 @@
+#include <iostream>
+#include <iomanip>
+
 #include "user.hpp"
 #include "command.hpp"
 #include "player.hpp"
-#include <iostream>
 
 using namespace std;
 
@@ -67,7 +69,7 @@ vector<Player*> User::get_squad() {
     return squad;
 }
 
-int User::get_total_points() {
+double User::get_total_points() {
     return total_points;
 }
 
@@ -78,4 +80,8 @@ void User::update_total_points() {
 
 bool User::had_completed_squad() {
     return ever_had_completed_squad;
+}
+
+void User::print_row(int index) {
+    cout << index << ". team_name: " << get_username() << " | point: " << fixed << setprecision(1) << get_total_points() << endl;
 }

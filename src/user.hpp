@@ -29,9 +29,10 @@ public:
     void inc_boughts_count();
     bool is_complted();
     std::vector<Player*> get_squad();
-    int get_total_points();
+    double get_total_points();
     void update_total_points();
     bool had_completed_squad();
+    void print_row(int index);
 };
 
 #endif
