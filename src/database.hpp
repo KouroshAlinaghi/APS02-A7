@@ -12,6 +12,7 @@
 
 const std::string ADMIN_USERNAME = "admin";
 const std::string ADMIN_PASSWORD = "123456";
+const std::string OWN_GOAL = "OWN_GOAL";
 
 class Database {
 private:
@@ -22,7 +23,7 @@ private:
     std::vector<Match*> matches;
     void read_league_csv();
     Club* create_club(std::string club_name);
-    Player* create_player(std::string name, Club* club, PLAYER_POSITION position);
+    Player* create_player(std::string name, Club* club, PLAYER_POSITION position, int cost);
     Match* create_match(Club* home, Club* away, Result res, int week);
     void update_standings_stats(Club* home, Club* away, Result res);
     Admin* create_admin();
@@ -44,7 +45,8 @@ public:
     std::vector<Player*> get_players_of_club(Club* club);
     void tell_player_the_week_passed();
     void reset_transfers_counts();
-    void calculate_points();
+    void calculate_players_points();
+    void calculate_teams_points();
     std::vector<User*> get_users();
 };
 

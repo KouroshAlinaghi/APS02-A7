@@ -9,7 +9,7 @@ const std::string LEAGUE_CSV_FILE_PATH = "./data/premier_league.csv";
 const std::string WEEK_STATS_CSV_FILE_PATH = "./data/weeks_stats/week";
 
 enum WEEK_STATS_COLUMNS {
-    MATCH, RESULT, INJURED, YELLOW_CARD, RED_CARD, SCORES
+    MATCH, RESULT, INJURED, YELLOW_CARD, RED_CARD, GOALS_AND_ASSISTS, HOME_SQUAD, AWAY_SQUAD
 };
 
 std::string trim(std::string sr);

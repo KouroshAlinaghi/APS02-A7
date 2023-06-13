@@ -204,10 +204,15 @@ void buy_player(Database* db, Session* cookie, Arguments args) {
     if (current_user->get_number_of_players(player->get_position()) >= PLAYERS_COUNT_IN_SQUAD[player->get_position()])
         throw BadRequestException();
 
+    if (!player->is_available()) {
+        cout << "This player is not available for the next week" << endl;
+        return;
+    }
+
     current_user->buy_player(player);
     current_user->inc_boughts_count();
 
-    cout << (player->is_available() ? "OK" : "This player is not available for the next week") << endl;
+    cout << "OK" << endl;
 }
 
 void get_squad(Database* db, Session* cookie, Arguments args) {
@@ -220,20 +225,7 @@ void get_squad(Database* db, Session* cookie, Arguments args) {
     if (team->is_admin()) throw PermissionDeniedException();
     if (!team->is_complted()) throw EmptyException();
 
-    vector<Player*> squad = team->get_squad();
-    sort(squad.begin(), squad.end(), [](Player* p1, Player* p2) {
-        if (p1->get_position() > p2->get_position()) return false;
-        if (p1->get_position() < p2->get_position()) return true;
-        return p1->get_name() < p2->get_name();
-    });
-
-    cout << "fantasy_team: " << team->get_username() << endl;
-    cout << "Goalkeeper: " << squad[0]->get_name() << endl;
-    cout << "Defender1: " << squad[1]->get_name() << endl;
-    cout << "Defender2: " << squad[2]->get_name() << endl;
-    cout << "Midfielder: " << squad[3]->get_name() << endl;
-    cout << "Striker: " << squad[4]->get_name() << endl;
-    cout << "Total Points: " << team->get_total_points() << endl;
+    team->print_squad();
 }
 
 void close_transfer_window(Database*, Session* cookie, Arguments) {
@@ -256,8 +248,36 @@ void pass_week(Database* db, Session* cookie, Arguments) {
     db->tell_player_the_week_passed();
     db->reset_transfers_counts();
     db->read_week_stats(cookie->get_current_week()+1);
+    db->calculate_players_points();
+    db->calculate_teams_points();
     cookie->pass_week();
-    db->calculate_points();
 
     cout << "OK" << endl;
+}
+
+void set_captain(Database* db, Session* cookie, Arguments args) {
+    if (args.size() < 3 or args[0] != "?" or args[1] != "name") throw BadRequestException();
+
+    cookie->ensure_user_logged_in();
+    User* current_user = (User*)cookie->get_current_user();
+    if (current_user->is_admin()) throw PermissionDeniedException();
+
+    string player_name = get_player_name(args);
+    Player* player = db->get_player(player_name);
+    if (!player) throw NotFoundException();
+    if (!current_user->has_player(player)) throw NotFoundException();
+
+    current_user->set_captain(player);
+
+    cout << "OK" << endl;
+}
+
+void show_budget(Database*, Session* cookie, Arguments args) {
+    if (!args.empty()) throw BadRequestException();
+
+    cookie->ensure_user_logged_in();
+    User* current_user = (User*)cookie->get_current_user();
+    if (current_user->is_admin()) throw PermissionDeniedException();
+    
+    cout << current_user->get_budget() << endl;
 }

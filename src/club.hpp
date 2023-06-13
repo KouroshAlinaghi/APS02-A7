@@ -2,6 +2,9 @@
 #define CLUB_HEADERFILE
 
 #include <string>
+#include <vector>
+
+class Player;
 
 class Club {
 private:
@@ -9,6 +12,7 @@ private:
     int points;
     int goals_scored;
     int goals_conceded;
+    std::vector<Player*> squad;
 public:
     Club(std::string name_) {
         name = name_;
@@ -25,6 +29,8 @@ public:
     int get_goals_conceded();
     int get_goals_diff();
     void print_row(int index);
+    void set_no_cleansheet();
+    void add_player(Player* player);
 };
 
 #endif

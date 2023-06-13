@@ -39,3 +39,35 @@ bool PlayerStats::had_red_card() {
 bool PlayerStats::did_play() {
     return played;
 }
+
+void PlayerStats::score_goal() {
+    goals++;
+}
+
+void PlayerStats::score_assist() {
+    assists++;
+}
+
+void PlayerStats::score_own_goal() {
+    own_goals++;
+}
+
+void PlayerStats::set_no_cleansheet() {
+    cleansheet = false;
+}
+
+bool PlayerStats::did_cleansheet() {
+    return cleansheet;
+}
+
+int PlayerStats::get_goals() {
+    return goals;
+}
+
+int PlayerStats::get_assists() {
+    return assists;
+}
+
+int PlayerStats::get_ogs() {
+    return own_goals;
+}

@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "club.hpp"
+#include "player.hpp"
 
 using namespace std;
 
@@ -38,4 +39,13 @@ int Club::get_goals_diff() {
 
 void Club::print_row(int index) {
     cout << index << ". " << get_name() << ": score: " << get_points() << " | GF: " << get_goals_scored() << " | GA: " << get_goals_conceded() << endl;
+}
+
+void Club::set_no_cleansheet() {
+    for (Player* player : squad)
+        player->set_no_cleansheet();
+}
+
+void Club::add_player(Player* player) {
+    squad.push_back(player);
 }

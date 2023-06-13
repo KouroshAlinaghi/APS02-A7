@@ -27,6 +27,8 @@ void App::initialize_commands() {
     commands.push_back(new Command(close_transfer_window, "close_transfer_window", HTTP_VERB::POST));
     commands.push_back(new Command(open_transfer_window, "open_transfer_window", HTTP_VERB::POST));
     commands.push_back(new Command(pass_week, "pass_week", HTTP_VERB::POST));
+    commands.push_back(new Command(set_captain, "set_captain", HTTP_VERB::POST));
+    commands.push_back(new Command(show_budget, "show_budget", HTTP_VERB::GET));
 }
 
 void App::execute_command(HTTP_VERB verb, string command_name, Arguments args) {

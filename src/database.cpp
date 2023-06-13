@@ -13,6 +13,10 @@
 #include "player.hpp"
 #include "user.hpp"
 #include "admin.hpp"
+#include "player/goalkeeper.hpp"
+#include "player/defender.hpp"
+#include "player/midfielder.hpp"
+#include "player/forward.hpp"
 
 using namespace std;
 
@@ -22,8 +26,22 @@ Club* Database::create_club(string name) {
     return new_club;
 }
 
-Player* Database::create_player(string name, Club* club, PLAYER_POSITION position) {
-    Player* new_player = new Player(club, name, position);
+Player* Database::create_player(string name, Club* club, PLAYER_POSITION position, int cost) {
+    Player* new_player;
+    switch (position) {
+        case GOALKEEPER:
+            new_player = new Goalkeeper(club, name, position, cost);
+            break;
+        case DEFENDER:
+            new_player = new Defender(club, name, position, cost);
+            break;
+        case MIDFIELDER:
+            new_player = new Midfielder(club, name, position, cost);
+            break;
+        case FORWARD:
+            new_player = new Forward(club, name, position, cost);
+            break;
+    }
     players.push_back(new_player);
     return new_player;
 }
@@ -51,7 +69,8 @@ Player* Database::get_player(string name) {
 void Database::read_league_csv() {
     string line;
     Club* current_club;
-    vector<string> parts, words;
+    Player* player;
+    vector<string> parts, words, player_and_cost;
     ifstream league_csv_file(LEAGUE_CSV_FILE_PATH);
     getline(league_csv_file, line);
     while (getline(league_csv_file, line)) {
@@ -63,7 +82,10 @@ void Database::read_league_csv() {
             }
             words = split(parts[i], ';');
             for (string word : words) {
-                create_player(word, current_club, POSITIONS_IN_ORDER[i-1]);
+                player_and_cost = split(word, ':');
+                player_and_cost.back().pop_back();
+                player = create_player(player_and_cost[0], current_club, POSITIONS_IN_ORDER[i-1], stoi(player_and_cost[1]));
+                current_club->add_player(player);
             }
         }
     }
@@ -90,10 +112,12 @@ void Database::update_standings_stats(Club* home, Club* away, Result res) {
 }
 
 void Database::read_week_stats(int week) {
-    const char DELIMITERS[10] = {':', ':', ';', ';', ';', ';'};
-    const WEEK_STATS_COLUMNS COLUMNS[10] = { MATCH, RESULT, INJURED, YELLOW_CARD, RED_CARD, SCORES };
-    vector<string> parts, words, player_scores;
+    const char DELIMITERS[10] = {':', ':', ';', ';', ';', ';', ';', ';', ';'};
+    const WEEK_STATS_COLUMNS COLUMNS[10] = { MATCH, RESULT, INJURED, YELLOW_CARD, RED_CARD, GOALS_AND_ASSISTS, HOME_SQUAD, AWAY_SQUAD };
+    vector<string> parts, words, player_scores, goals_and_assists;
     Club *home, *away;
+    Match* match;
+    Player *scorer, *assister;
     Result res;
     ifstream week_stats_file(WEEK_STATS_CSV_FILE_PATH + "_" + to_string(week) + ".csv");
     string line;
@@ -108,7 +132,7 @@ void Database::read_week_stats(int week) {
                     break;
                 case RESULT:
                     res = make_pair(stoi(words[0]), stoi(words[1]));
-                    create_match(home, away, res, week);
+                    match = create_match(home, away, res, week);
                     update_standings_stats(home, away, res);
                     break;
                 case INJURED:
@@ -123,10 +147,33 @@ void Database::read_week_stats(int week) {
                     for (string player_name : words)
                         get_player(player_name)->recieve_red_card();
                     break;
-                case SCORES:
-                    for (string player_and_score: words) {
-                        player_scores = split(player_and_score, ':');
-                        get_player(player_scores[0])->set_score(stod(player_scores[1]));
+                case GOALS_AND_ASSISTS:
+                    for (string scorer_and_assister : words) {
+                        goals_and_assists = split(scorer_and_assister, ':');
+                        scorer = get_player(goals_and_assists[0]);
+                        assister = goals_and_assists[1] == OWN_GOAL ? nullptr : get_player(goals_and_assists[1]);
+                        match->record_score(scorer, assister);
+                        if (assister) {
+                            scorer->score_goal();
+                            assister->score_assist();
+                            Club* team_conceded = scorer->get_team() == home ? away : home;
+                            team_conceded->set_no_cleansheet();
+                        } else {
+                            scorer->get_team()->set_no_cleansheet();
+                            scorer->score_own_goal();
+                        }
+                    }
+                    break;
+                case HOME_SQUAD:
+                    for (string player_name : words) {
+                        get_player(player_name)->play();
+                        match->add_home_squad(get_player(player_name));
+                    }
+                    break;
+                case AWAY_SQUAD:
+                    for (string player_name : words) {
+                        get_player(player_name)->play();
+                        match->add_away_squad(get_player(player_name));
                     }
                     break;
             }
@@ -212,7 +259,13 @@ void Database::reset_transfers_counts() {
         user->reset_transfers_counts();
 }
 
-void Database::calculate_points() {
+void Database::calculate_players_points() {
+    for (Match* match : matches)
+        for (Player* player : match->get_players())
+            player->calculate_score(match);
+}
+
+void Database::calculate_teams_points() {
     for (User* user: users)
         if (user->is_complted())
             user->update_total_points();

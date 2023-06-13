@@ -56,5 +56,7 @@ void get_squad(Database*, Session*, Arguments);
 void close_transfer_window(Database*, Session*, Arguments);
 void open_transfer_window(Database*, Session*, Arguments);
 void pass_week(Database*, Session*, Arguments);
+void set_captain(Database*, Session*, Arguments);
+void show_budget(Database*, Session*, Arguments);
 
 #endif
