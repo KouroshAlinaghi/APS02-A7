@@ -65,3 +65,15 @@ int Match::get_opposite_scores(Player* player) {
 int Match::get_oponent_team_scores(Player* player) {
     return player->get_team() == home ? result.first : result.second;
 }
+
+Club* Match::get_home() {
+    return home;
+}
+
+Club* Match::get_away() {
+    return away;
+}
+
+Result Match::get_result() {
+    return result;
+}

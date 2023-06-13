@@ -96,7 +96,9 @@ vector<Player*> Database::get_players() {
     return players;
 }
 
-void Database::update_standings_stats(Club* home, Club* away, Result res) {
+void Database::update_standings_stats(Match* match) {
+    Club *home = match->get_home(), *away = match->get_away(); 
+    Result res = match->get_result();
     home->inc_goals_scored(res.first);
     away->inc_goals_scored(res.second);
     home->inc_goals_conceded(res.second);
@@ -111,74 +113,77 @@ void Database::update_standings_stats(Club* home, Club* away, Result res) {
     }
 }
 
-void Database::read_week_stats(int week) {
-    const char DELIMITERS[10] = {':', ':', ';', ';', ';', ';', ';', ';', ';'};
-    const WEEK_STATS_COLUMNS COLUMNS[10] = { MATCH, RESULT, INJURED, YELLOW_CARD, RED_CARD, GOALS_AND_ASSISTS, HOME_SQUAD, AWAY_SQUAD };
-    vector<string> parts, words, player_scores, goals_and_assists;
-    Club *home, *away;
-    Match* match;
-    Player *scorer, *assister;
+void Database::handle_row(string line, int week) {
+    vector<string> cols = split(line, ','), words;
+    Club *home = nullptr, *away = nullptr;
+    Match* match = nullptr;
     Result res;
+    for (WEEK_STATS_COLUMNS c : COLUMNS) {
+        words = split(cols[c], DELIMITERS[c]);
+        switch (c) {
+            case MATCH:
+                home = get_club(words[0]), away = get_club(words[1]);
+                break;
+            case RESULT:
+                res = make_pair(stoi(words[0]), stoi(words[1]));
+                match = create_match(home, away, res, week);
+                update_standings_stats(match);
+                break;
+            case INJURED:
+                for (string player_name : words)
+                    get_player(player_name)->get_injured();
+                break;
+            case YELLOW_CARD:
+                for (string player_name : words)
+                    get_player(player_name)->recieve_yellow_card();
+                break;
+            case RED_CARD:
+                for (string player_name : words)
+                    get_player(player_name)->recieve_red_card();
+                break;
+            case GOALS_AND_ASSISTS:
+                for (string scorer_and_assister : words)
+                    handle_goals_and_asssits(scorer_and_assister, match);
+                break;
+            case HOME_SQUAD:
+                for (string player_name : words) {
+                    get_player(player_name)->play();
+                    match->add_home_squad(get_player(player_name));
+                }
+                break;
+            case AWAY_SQUAD:
+                for (string player_name : words) {
+                    get_player(player_name)->play();
+                    match->add_away_squad(get_player(player_name));
+                }
+                break;
+        }
+    }
+}
+
+void Database::handle_goals_and_asssits(string scorer_and_assister, Match* match) {
+    vector<string> goals_and_assists = split(scorer_and_assister, ':');
+    Player* scorer = get_player(goals_and_assists[0]);
+    Player* assister = goals_and_assists[1] == OWN_GOAL ? nullptr : get_player(goals_and_assists[1]);
+    match->record_score(scorer, assister);
+    if (assister) {
+        scorer->score_goal();
+        assister->score_assist();
+        Club* team_conceded = scorer->get_team() == match->get_home() ? match->get_away() : match->get_home();
+        team_conceded->set_no_cleansheet();
+    } else {
+        scorer->get_team()->set_no_cleansheet();
+        scorer->score_own_goal();
+    }
+}
+
+void Database::read_week_stats(int week) {
     ifstream week_stats_file(WEEK_STATS_CSV_FILE_PATH + "_" + to_string(week) + ".csv");
     string line;
     getline(week_stats_file, line);
-    while (getline(week_stats_file, line)) {
-        parts = split(line, ',');
-        for (WEEK_STATS_COLUMNS c : COLUMNS) {
-            words = split(parts[c], DELIMITERS[c]);
-            switch (c) {
-                case MATCH:
-                    home = get_club(words[0]), away = get_club(words[1]);
-                    break;
-                case RESULT:
-                    res = make_pair(stoi(words[0]), stoi(words[1]));
-                    match = create_match(home, away, res, week);
-                    update_standings_stats(home, away, res);
-                    break;
-                case INJURED:
-                    for (string player_name : words)
-                        get_player(player_name)->get_injured();
-                    break;
-                case YELLOW_CARD:
-                    for (string player_name : words)
-                        get_player(player_name)->recieve_yellow_card();
-                    break;
-                case RED_CARD:
-                    for (string player_name : words)
-                        get_player(player_name)->recieve_red_card();
-                    break;
-                case GOALS_AND_ASSISTS:
-                    for (string scorer_and_assister : words) {
-                        goals_and_assists = split(scorer_and_assister, ':');
-                        scorer = get_player(goals_and_assists[0]);
-                        assister = goals_and_assists[1] == OWN_GOAL ? nullptr : get_player(goals_and_assists[1]);
-                        match->record_score(scorer, assister);
-                        if (assister) {
-                            scorer->score_goal();
-                            assister->score_assist();
-                            Club* team_conceded = scorer->get_team() == home ? away : home;
-                            team_conceded->set_no_cleansheet();
-                        } else {
-                            scorer->get_team()->set_no_cleansheet();
-                            scorer->score_own_goal();
-                        }
-                    }
-                    break;
-                case HOME_SQUAD:
-                    for (string player_name : words) {
-                        get_player(player_name)->play();
-                        match->add_home_squad(get_player(player_name));
-                    }
-                    break;
-                case AWAY_SQUAD:
-                    for (string player_name : words) {
-                        get_player(player_name)->play();
-                        match->add_away_squad(get_player(player_name));
-                    }
-                    break;
-            }
-        }
-    }
+    while (getline(week_stats_file, line))
+        handle_row(line, week);
+
     week_stats_file.close();
 }
 
@@ -196,9 +201,9 @@ vector<Club*> Database::get_clubs_sorted() {
 }
 
 User* Database::get_user(string username) {
-    for (User* user : users) 
+    for (Account* user : users) 
         if (user->get_username() == username)
-            return user;
+            return (User*)user;
     return nullptr;
 }
 

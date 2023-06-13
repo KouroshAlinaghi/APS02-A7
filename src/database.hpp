@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 
+#include "input.hpp"
 #include "player.hpp"
 #include "user.hpp"
 #include "admin.hpp"
@@ -12,7 +13,6 @@
 
 const std::string ADMIN_USERNAME = "admin";
 const std::string ADMIN_PASSWORD = "123456";
-const std::string OWN_GOAL = "OWN_GOAL";
 
 class Database {
 private:
@@ -25,8 +25,10 @@ private:
     Club* create_club(std::string club_name);
     Player* create_player(std::string name, Club* club, PLAYER_POSITION position, int cost);
     Match* create_match(Club* home, Club* away, Result res, int week);
-    void update_standings_stats(Club* home, Club* away, Result res);
+    void update_standings_stats(Match* match);
     Admin* create_admin();
+    void handle_row(std::string line, int week);
+    void handle_goals_and_asssits(std::string scorer_and_assister, Match* match);
 public:
     Database() {
         create_admin();

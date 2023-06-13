@@ -7,7 +7,6 @@
 #include "custom_exceptions/empty_exception.hpp"
 #include "custom_exceptions/not_found_exception.hpp"
 
-
 class Session {
 private:
     Account* current_user;

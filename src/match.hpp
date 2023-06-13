@@ -41,6 +41,9 @@ public:
     Club* get_winner();
     int get_opposite_scores(Player* player);
     int get_oponent_team_scores(Player* player);
+    Club* get_home();
+    Club* get_away();
+    Result get_result();
 };
 
 #endif
